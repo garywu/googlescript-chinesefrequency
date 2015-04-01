@@ -31,9 +31,9 @@
  *  + Counts the number of Chinese charaters (Hanzi) and unique Chinese characters.
  *  + Outputs a comma-separated list of Hanzi, Pinyin, and frequency counts.
  *
- * @version 0.2
+ * @version 0.3
  * @license The Unlicense http://unlicense.org/
- * @updated 2015-03-31
+ * @updated 2015-04-01
  * @author  The Pffy Authors https://github.com/pffy/
  * @link    https://github.com/pffy/googlescript-chinese-frequency
  *
@@ -54,6 +54,7 @@ var ChineseFrequency = function() {
       _csvlist = '',
       _txtlist = '',
       _summary = '',
+      _dataRange = [],
       _input = '',
       _output = '';
 
@@ -136,6 +137,11 @@ var ChineseFrequency = function() {
       return _txtlist;
     },
 
+    // returns 2D array of data
+    getDataRange: function () {
+      return _dataRange;
+    },
+
     // returns number of hanzi in text input
     getTotalHanzi: function () {
       return _metaHanzi;
@@ -186,18 +192,35 @@ var ChineseFrequency = function() {
 
       bigc.sort(_desc);
 
+      // NOTE: appended multi-byte space character to end of data headers
+      // TODO: refactor for portability
       _summary = ''
-        + _padSummary('Total Characters') + _padZero(_metaTotal)
-        + '\n' + _padSummary('~ Removed') + _padZero(_metaRemoved)
-        + '\n' + _padSummary('Chinese Characters') + _padZero(_metaHanzi)
-        + '\n' + _padSummary('~ Unique') + _padZero(_metaUnique)
-        + '\n' + _padSummary('~ Processed') + _padZero(_metaProcessed);
+        + _padSummary('Total Characters　') + _padZero(_metaTotal)
+        + '\n' + _padSummary('~ Removed　') + _padZero(_metaRemoved)
+        + '\n' + _padSummary('Chinese Characters　') + _padZero(_metaHanzi)
+        + '\n' + _padSummary('~ Unique　') + _padZero(_metaUnique)
+        + '\n' + _padSummary('~ Processed　') + _padZero(_metaProcessed);
 
       var csv = HEADER_ROW_CSV;
       for (var i = 0; i < bigc.length; i++) {
         csv += '\n' + bigc[i].hz + ',' + bigc[i].py
           + ',' + bigc[i].freq;
       }
+
+      var dataRange = [];
+      for (var i = 0; i < bigc.length; i++) {
+
+        var row = []; // new row
+
+        row.push(bigc[i].hz);
+        row.push(bigc[i].py);
+        row.push(bigc[i].freq);
+
+        // finished row
+        dataRange.push(row);
+      }
+
+      _dataRange = dataRange;
 
       _csvlist = csv;
 
@@ -209,6 +232,7 @@ var ChineseFrequency = function() {
       }
 
       _txtlist = txt;
+
 
       return this;
     }
