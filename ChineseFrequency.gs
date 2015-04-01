@@ -28,25 +28,38 @@
 /**
  * ChineseFrequency.gs
  * Designed for Google Spreadsheets or Google Documents (for Google Drive).
- * Counts total and unique number of Chinese characters in a string.
- * Returns the result in a list with Hanzi, Hanyu Pinyin, and Frequency.
- * Written in Google Apps Script.
+ *  + Counts the number of Chinese charaters (Hanzi) and unique Chinese characters.
+ *  + Outputs a comma-separated list of Hanzi, Pinyin, and frequency counts.
  *
- * @version 0.1
+ * @version 0.2
  * @license The Unlicense http://unlicense.org/
- * @updated 2015-03-30
+ * @updated 2015-03-31
  * @author  The Pffy Authors https://github.com/pffy/
  * @link    https://github.com/pffy/googlescript-chinese-frequency
  *
  */
 var ChineseFrequency = function() {
+
+  // CONSTANTS
+  var LABEL_PADSIZE = 20,
+      FREQ_PADSIZE = 5;
+
   var _hpdx = IdxHanyuPinyin,
       _xpdx = IdxExtraPinyin,
+      _metaTotal = 0,
+      _metaRemoved,
       _metaHanzi = 0,
       _metaUnique = 0,
+      _metaProcessed = 0,
+      _csvlist = '',
+      _txtlist = '',
       _summary = '',
       _input = '',
       _output = '';
+
+  var HEADER_ROW_CSV = 'hz,py,freq',
+      HEADER_ROW_TXT = _padSummary('hz [py]  ') + 'freq';
+
 
   // returns cleaned text input
   function _cleanInput(str) {
@@ -76,6 +89,18 @@ var ChineseFrequency = function() {
     return str.replace(new RegExp(find, 'gi'), replace);
   }
 
+  // pads summary
+  function _padSummary(str) {
+    return '' + Utilities.formatString('%-' + LABEL_PADSIZE + 's', str) + ': ';
+  }
+
+  // TODO: fix this to do up to 4 places
+  function _padZero(str) {
+    str = '' + str;
+    return str.length < FREQ_PADSIZE ?
+      Utilities.formatString('%' + FREQ_PADSIZE + 's', str) : str;
+  }
+
   // COMPARE: order by freq, ascending
   function _asc(a,b) {
     if (a.freq < b.freq)
@@ -98,7 +123,17 @@ var ChineseFrequency = function() {
 
     // returns string representation of this object
     toString: function() {
-      return _output;
+      return _csvlist;
+    },
+
+    // returns list
+    getCsv: function () {
+      return _csvlist;
+    },
+
+    // returns list
+    getTxt: function () {
+      return _txtlist;
     },
 
     // returns number of hanzi in text input
@@ -119,37 +154,62 @@ var ChineseFrequency = function() {
     // returns this object, sets the text input
     setInput: function(str) {
 
+      _metaTotal = str.length;
+
       str = _cleanInput(str);
       _input = str ? str : '';
       _metaHanzi = str.length;
+
+      _metaRemoved = _metaTotal - _metaHanzi;
 
       var arr = _input.split('');
       arr = _unique(arr);
       _metaUnique = arr.length;
 
-      _summary = 'Hanzi: ' + _metaHanzi
-        + '\nUnique: ' + _metaUnique;
-
       var bigc = [];
+      var numProcessed = 0;
+
       for(var w in arr) {
-        if(bigc.indexOf(arr[w]) < 0){
+        if(bigc.indexOf(arr[w]) < 0) {
+
           bigc.push({
             hz: arr[w],
             py: _hpdx[arr[w]] ? _hpdx[arr[w]] : 'zzz1',
             freq: _input.match(new RegExp('' + arr[w], 'gi')).length
           });
+
+          numProcessed++;
         }
       }
 
+      _metaProcessed = numProcessed;
+
       bigc.sort(_desc);
 
-      var csv = 'hz,py,freq';
+      _summary = ''
+        + _padSummary('Total Characters') + _padZero(_metaTotal)
+        + '\n' + _padSummary('~ Removed') + _padZero(_metaRemoved)
+        + '\n' + _padSummary('Chinese Characters') + _padZero(_metaHanzi)
+        + '\n' + _padSummary('~ Unique') + _padZero(_metaUnique)
+        + '\n' + _padSummary('~ Processed') + _padZero(_metaProcessed);
+
+      var csv = HEADER_ROW_CSV;
       for (var i = 0; i < bigc.length; i++) {
         csv += '\n' + bigc[i].hz + ',' + bigc[i].py
           + ',' + bigc[i].freq;
       }
 
-      _output = csv;
+      _csvlist = csv;
+
+      var txt = _summary;
+      txt += '\n\n';
+      for (var i = 0; i < bigc.length; i++) {
+        txt += '\n' + _padSummary( bigc[i].hz + ' ' + '[' + bigc[i].py + ']' )
+          + _padZero(bigc[i].freq);
+      }
+
+      _txtlist = txt;
+
       return this;
     }
 
