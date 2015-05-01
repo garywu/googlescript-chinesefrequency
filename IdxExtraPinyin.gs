@@ -30,11 +30,11 @@
  * Designed for Google Spreadsheets or Google Documents (for Google Drive).
  * Stores IdxExtraPinyin key-value pairs.
  *
- * @version 0.3
- * @license The Unlicense http://unlicense.org/
- * @updated 2015-03-12
- * @author  The Pffy Authors https://github.com/pffy/
- * @link    https://github.com/pffy/googlescript-hanyupinyin
+ * @version 6
+ * @license http://unlicense.org/ The Unlicense
+ * @updated 2015-04-30
+ * @author  https://github.com/pffy/ The Pffy Authors
+ * @link    https://github.com/pffy/googlescript-chinese-frequency
  *
  */
 var IdxExtraPinyin = {
