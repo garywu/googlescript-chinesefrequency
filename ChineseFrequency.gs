@@ -31,10 +31,10 @@
  *  + Counts the number of Chinese charaters (Hanzi) and unique Chinese characters.
  *  + Outputs a comma-separated list of Hanzi, Pinyin, and frequency counts.
  *
- * @version 6
- * @license http://unlicense.org/ The Unlicense
- * @updated 2015-04-30
- * @author  https://github.com/pffy/ The Pffy Authors
+ * @version 7
+ * @license The Unlicense http://unlicense.org/
+ * @updated 2015-05-12
+ * @author  The Pffy Authors https://github.com/pffy/
  * @link    https://github.com/pffy/googlescript-chinese-frequency
  *
  */
@@ -121,6 +121,21 @@ var ChineseFrequency = function() {
     if (a.freq < b.freq)
       return 1;
     return 0;
+  }
+
+  // creates formatted text summary
+  function _buildSummary() {
+    _summary = ''
+      + _padSummary('Total Characters' + MULTIBYTE_SPACE)
+      + _padZero(_metaTotal)
+      + CRLF + _padSummary('~ Removed' + MULTIBYTE_SPACE)
+      + _padZero(_metaRemoved)
+      + CRLF + _padSummary('Chinese Characters' + MULTIBYTE_SPACE)
+      + _padZero(_metaHanzi)
+      + CRLF + _padSummary('~ Unique' + MULTIBYTE_SPACE)
+      + _padZero(_metaUnique)
+      + CRLF + _padSummary('~ Processed' + MULTIBYTE_SPACE)
+      + _padZero(_metaProcessed);
   }
 
   return {
@@ -243,29 +258,21 @@ var ChineseFrequency = function() {
 
       _metaProcessed = numProcessed;
 
+      // builds count summary
+      _buildSummary();
+
       if(_metaProcessed > 0) {
         _hasRows = true;
       } else {
-        _summary = '';
         _dataRange = [];
         _csvlist = '';
-        _txtlist = '';
+        _txtlist = _summary;
         return this;
       }
 
       bigc.sort(_desc);
 
-      _summary = ''
-        + _padSummary('Total Characters' + MULTIBYTE_SPACE)
-        + _padZero(_metaTotal)
-        + CRLF + _padSummary('~ Removed' + MULTIBYTE_SPACE)
-        + _padZero(_metaRemoved)
-        + CRLF + _padSummary('Chinese Characters' + MULTIBYTE_SPACE)
-        + _padZero(_metaHanzi)
-        + CRLF + _padSummary('~ Unique' + MULTIBYTE_SPACE)
-        + _padZero(_metaUnique)
-        + CRLF + _padSummary('~ Processed' + MULTIBYTE_SPACE)
-        + _padZero(_metaProcessed);
+
 
       var dataRange = [];
       var csv = HEADER_ROW_CSV;
